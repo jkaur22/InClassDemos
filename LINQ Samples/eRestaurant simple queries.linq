@@ -1,4 +1,4 @@
-<Query Kind="Expression">
+<Query Kind="Statements">
   <Connection>
     <ID>cf935270-7770-4a63-aa5e-9d33e714fa8f</ID>
     <Persist>true</Persist>
@@ -23,3 +23,31 @@
 
 //view Waiter data
 Waiters
+
+//query syntax to also view waiter data ---------
+from item in Waiters
+select item
+
+//method syntax to view Waiter data
+Waiters.Select (item => item)
+
+//alter the query syntax into a C# statement
+ var results = from item in Waiters
+                select item;
+				
+	results.Dump();
+	
+//once the query is create,tested, you will be able to 
+//transfer the query with minor modifications into your
+//
+	public List<pcocObject>SomeBLLMethodName()
+	{
+	
+	//connect to your DAL pbject:var contextvariable
+	//do your Query
+	
+	var results = from item in contextvariable.Waiters
+                select item;
+				
+	 return results.ToList();
+	}
