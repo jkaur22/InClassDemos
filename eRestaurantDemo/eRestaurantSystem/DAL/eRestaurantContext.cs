@@ -47,7 +47,7 @@ namespace eRestaurantSystem.DAL
        //we have a many to many relationship between reservation and tables
        //a reservation may need many tables.
        //a table can have over time many reservations.
-
+       // we use this table method when we have a compund key in our tables.
        protected override void OnModelCreating(DbModelBuilder modelBuilder)
        {
 
