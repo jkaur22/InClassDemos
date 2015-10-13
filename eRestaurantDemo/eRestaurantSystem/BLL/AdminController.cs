@@ -18,6 +18,8 @@ namespace eRestaurantSystem.BLL
     [DataObject]
     public class AdminController
     {
+        #region QuerySamples
+       
         [DataObjectMethod(DataObjectMethodType.Select, false)]
         public List<SpecialEvent> SpecialEvent_List()
         {
@@ -110,5 +112,55 @@ namespace eRestaurantSystem.BLL
                 return results.ToList();
             }
         }
-    }
-}
+        #endregion
+
+        #region Crud Inser, Update, Delete
+        [DataObjectMethod(DataObjectMethodType.Insert, false)]
+        public void SpecialEvents_Add(SpecialEvent item)
+        {
+            //input into this method is at the instance level
+            using (eRestaurantContext context = new eRestaurantContext())
+            {
+                  //create a pointer variable for the instance type
+                //set this pointer to null
+                SpecialEvent added = null;
+
+                //set up the add request for the dbcontext
+
+                added = context.SpecialEvents.Add(item);
+                //saving the changes will cause the .Add to execute
+                //commits the add to the databse
+                //evaluates the annotations(validation) on your entity
+
+                context.SaveChanges();
+            }
+        }
+
+        [DataObjectMethod(DataObjectMethodType.Update, false)]
+        public void SpecialEvents_Update(SpecialEvent item)
+        {
+            using (eRestaurantContext context = new eRestaurantContext())
+
+            {
+                context.Entry<SpecialEvent>(context.SpecialEvents.Attach(item)).State = System.Data.Entity.EntityState.Modified;
+                context.SaveChanges();
+            }
+        }
+        [DataObjectMethod(DataObjectMethodType.Delete, false)]
+        public void SpecialEvents_Delete(SpecialEvent item)
+        {
+            using (eRestaurantContext context = new eRestaurantContext())
+            { 
+                //look up the item instance on the database to determi8nje if the instance exist
+                SpecialEvent existing = context.SpecialEvents.Find(item.EventCode);
+                //set up the delete request command 
+                context.SpecialEvents.Remove(existing);
+                //commit the action to happen
+                context.SaveChanges();
+            }
+        }
+        #endregion
+
+        //CQRS stands for command query responsibility segregation.
+    }// eof class
+}//eof namespace
