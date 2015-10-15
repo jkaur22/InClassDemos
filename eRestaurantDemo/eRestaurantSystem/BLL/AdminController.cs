@@ -39,6 +39,43 @@ namespace eRestaurantSystem.BLL
         }
 
         [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public List<Waiter> Waiters_List()
+        {
+            using (var context = new eRestaurantContext())
+            {
+                //retrieve the data from the Special Events table
+
+                //method syntax
+                //return context.SpecialEvents.OrderBy(x => x.Description).ToList();
+
+                //query syntax
+                var results = from item in context.Waiters
+                              orderby item.LastName, item.FirstName
+                              select item;
+                return results.ToList();
+            }
+        }
+
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public Waiter GetWaiterByID(int waiterid)
+        {
+            using (var context = new eRestaurantContext())
+            {
+                //retrieve the data from the Special Events table
+
+                //method syntax
+                //return context.SpecialEvents.OrderBy(x => x.Description).ToList();
+
+                //query syntax
+                var results = from item in context.Waiters
+                              where item.WaiterID == waiterid
+                              select item;
+                return results.FirstOrDefault();
+            }
+        }
+
+
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
         public List<Reservation> GetReservationsByEventCode(string eventcode)
         {
             using (var context = new eRestaurantContext())
@@ -114,7 +151,7 @@ namespace eRestaurantSystem.BLL
         }
         #endregion
 
-        #region Crud Inser, Update, Delete
+        #region Crud Insert, Update, Delete
         [DataObjectMethod(DataObjectMethodType.Insert, false)]
         public void SpecialEvents_Add(SpecialEvent item)
         {
@@ -155,6 +192,55 @@ namespace eRestaurantSystem.BLL
                 SpecialEvent existing = context.SpecialEvents.Find(item.EventCode);
                 //set up the delete request command 
                 context.SpecialEvents.Remove(existing);
+                //commit the action to happen
+                context.SaveChanges();
+            }
+        }
+        #endregion
+
+
+        //waiter crud
+
+        #region Crud Insert, Update, Delete
+        [DataObjectMethod(DataObjectMethodType.Insert, false)]
+        public void Waiters_Add(Waiter item)
+        {
+            //input into this method is at the instance level
+            using (eRestaurantContext context = new eRestaurantContext())
+            {
+                //create a pointer variable for the instance type
+                //set this pointer to null
+                Waiter added = null;
+
+                //set up the add request for the dbcontext
+
+                added = context.Waiters.Add(item);
+                //saving the changes will cause the .Add to execute
+                //commits the add to the databse
+                //evaluates the annotations(validation) on your entity
+
+                context.SaveChanges();
+            }
+        }
+
+        [DataObjectMethod(DataObjectMethodType.Update, false)]
+        public void Waiters_Update(Waiter item)
+        {
+            using (eRestaurantContext context = new eRestaurantContext())
+            {
+                context.Entry<Waiter>(context.Waiters.Attach(item)).State = System.Data.Entity.EntityState.Modified;
+                context.SaveChanges();
+            }
+        }
+        [DataObjectMethod(DataObjectMethodType.Delete, false)]
+        public void Waiters_Delete(Waiter item)
+        {
+            using (eRestaurantContext context = new eRestaurantContext())
+            {
+                //look up the item instance on the database to determi8nje if the instance exist
+                Waiter existing = context.Waiters.Find(item.WaiterID);
+                //set up the delete request command 
+                context.Waiters.Remove(existing);
                 //commit the action to happen
                 context.SaveChanges();
             }
