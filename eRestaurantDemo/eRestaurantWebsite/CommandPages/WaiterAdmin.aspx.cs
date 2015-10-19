@@ -78,4 +78,37 @@ public partial class CommandPages_WaiterAdmin : System.Web.UI.Page
                 }
             );
         }
+        protected void UpdateWaiter_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(WaiterID.Text))
+            {
+                MessageUserControl.ShowInfo("Please select the waiter to update.");
+            }
+            else
+            {
+                MessageUserControl.TryRun(() =>
+                {
+                    Waiter item = new Waiter();
+                    item.WaiterID = int.Parse(WaiterID.Text);
+                    item.FirstName = FirstName.Text;
+                    item.LastName = LastName.Text;
+                    item.Phone = Phone.Text;
+                    item.Address = Address.Text;
+                    item.HireDate = DateTime.Parse(DateHired.Text);
+                    if (string.IsNullOrEmpty(DateReleased.Text))
+                    {
+                        item.ReleaseDate = null;
+                    }
+                    else
+                    {
+                        item.ReleaseDate = DateTime.Parse(DateReleased.Text);
+                    }
+                    item.ReleaseDate = null;
+                    AdminController sysmgr = new AdminController();
+                     sysmgr.Waiters_Update(item);
+                    MessageUserControl.ShowInfo("Waiter Added.");
+                }
+            );
+            }
+        }
 }
