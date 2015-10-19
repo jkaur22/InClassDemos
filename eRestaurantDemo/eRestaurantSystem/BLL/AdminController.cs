@@ -203,7 +203,7 @@ namespace eRestaurantSystem.BLL
 
         #region Crud Insert, Update, Delete
         [DataObjectMethod(DataObjectMethodType.Insert, false)]
-        public void Waiters_Add(Waiter item)
+        public int Waiters_Add(Waiter item)
         {
             //input into this method is at the instance level
             using (eRestaurantContext context = new eRestaurantContext())
@@ -220,6 +220,9 @@ namespace eRestaurantSystem.BLL
                 //evaluates the annotations(validation) on your entity
 
                 context.SaveChanges();
+                //added contains the data of the newly added waiter 
+                //including the pKey value.
+                return added.WaiterID;
             }
         }
 

@@ -59,5 +59,23 @@ public partial class CommandPages_WaiterAdmin : System.Web.UI.Page
 
         }
 
-       
+
+        protected void InsertWaiter_Click(object sender, EventArgs e)
+        {
+            //this example is using the TryRun in line
+            MessageUserControl.TryRun(() =>
+                {
+                    Waiter item = new Waiter();
+                    item.FirstName = FirstName.Text;
+                    item.LastName = LastName.Text;
+                    item.Phone = Phone.Text;
+                    item.Address = Address.Text;
+                    item.HireDate = DateTime.Parse(DateHired.Text);
+                    item.ReleaseDate = null;
+                    AdminController sysmgr = new AdminController();
+                    WaiterID.Text = sysmgr.Waiters_Add(item).ToString();
+                    MessageUserControl.ShowInfo("Waiter Added.");
+                }
+            );
+        }
 }
