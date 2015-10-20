@@ -248,6 +248,26 @@ namespace eRestaurantSystem.BLL
                 context.SaveChanges();
             }
         }
+
+        [DataObjectMethod(DataObjectMethodType.Select, false)]
+        public List<MenuCategoryItems> GetReportCategoryMenuItems()
+        {
+            using (eRestaurantContext context = new eRestaurantContext())
+            {
+                var results = from cat in context.Items
+                              orderby cat.Category.Description, cat.Description
+                              select new MenuCategoryItems
+                              {
+                                  CategoryDescription = cat.Category.Description,
+                                  ItemDescription = cat.Description,
+                                  Price = cat.CurrentPrice,
+                                  Calories = cat.Calories,
+                                  Comment = cat.Comment
+                              };
+
+                return results.ToList(); // this was .Dump() in Linqpad
+            }
+        }
         #endregion
 
         //CQRS stands for command query responsibility segregation.
