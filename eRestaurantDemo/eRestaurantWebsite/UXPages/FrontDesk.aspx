@@ -70,7 +70,9 @@
                     </div>
                 </ItemTemplate>
             </asp:Repeater>
-            <asp:ObjectDataSource runat="server" ID="ReservationsDataSource" OldValuesParameterFormatString="original_{0}" SelectMethod="ReservationsByTime" TypeName="eRestaurantSystem.BLL.AdminController">
+            <asp:ObjectDataSource runat="server" ID="ReservationsDataSource" 
+                 OldValuesParameterFormatString="original_{0}" SelectMethod="ReservationsByTime"
+                 TypeName="eRestaurantSystem.BLL.AdminController">
                 <SelectParameters>
                     <asp:ControlParameter ControlID="SearchDate" PropertyName="Text" Name="date" Type="DateTime"></asp:ControlParameter>
                 </SelectParameters>

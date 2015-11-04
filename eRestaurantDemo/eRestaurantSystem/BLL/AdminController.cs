@@ -316,10 +316,7 @@ namespace eRestaurantSystem.BLL
         }
 
 
-        [DataObject]
-        public class SeatingController
-        {
-            [DataObjectMethod(DataObjectMethodType.Select)]
+           [DataObjectMethod(DataObjectMethodType.Select)]
             public List<ReservationCollection> ReservationsByTime(DateTime date)
             {
                 using (var context = new eRestaurantContext())
@@ -364,7 +361,7 @@ namespace eRestaurantSystem.BLL
                                       };
                     return finalResult.OrderBy(x => x.Hour).ToList();
                 }
-            }
+            
         }
         #endregion
     }// eof class
