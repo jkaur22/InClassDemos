@@ -464,7 +464,7 @@ namespace eRestaurantSystem.BLL
            /// </summary>
            /// <returns></returns>
            [DataObjectMethod(DataObjectMethodType.Select, false)]
-           public List<WaiterOnDuty> ListWaiters()
+           public List<WaiterOnDuty> ListAllWaiters()
            {
                using (eRestaurantContext context = new eRestaurantContext())
                {

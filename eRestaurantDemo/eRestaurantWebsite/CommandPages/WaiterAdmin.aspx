@@ -8,6 +8,8 @@
     <br />
     <uc1:MessageUserControl runat="server" ID="MessageUserControl" />
     <br />
+    Currently Logged in UserName: <asp:Label ID="CurrentUserName" runat="server" ></asp:Label>
+    <br /><br />
     <asp:Label ID="Label1" runat="server" Text="Select Waiter for Update"></asp:Label>&nbsp;&nbsp;
     <asp:DropDownList ID="WaiterList" runat="server" DataSourceID="ODSWaiters" DataTextField="FullName" DataValueField="WaiterID">
        
