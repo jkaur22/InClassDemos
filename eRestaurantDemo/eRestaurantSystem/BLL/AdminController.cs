@@ -458,11 +458,27 @@ namespace eRestaurantSystem.BLL
                         return step4.ToList();
                }
            }
+           [DataObjectMethod(DataObjectMethodType.Select)]
+           public List<SeatingSummary> AvailableSeatingByDateTime(DateTime date, TimeSpan time)
+           {
+               var result = from seats in SeatingByDateTime(date, time)
+                            where !seats.Taken
+                            select seats;
+               return result.ToList();
+           }
 
+
+
+        //are there avilable Seats
+           public bool IsAvailableSeats(DateTime when)
+           {
+               return AvailableSeatingByDateTime(DateTime.Parse(when.ToShortDateString()), TimeSpan.Parse(when.ToString())).Count > 0 ? true : false;
+           }
            /// <summary>
            /// ListWaiters returns the id and full name of all the current waiters
            /// </summary>
            /// <returns></returns>
+           
            [DataObjectMethod(DataObjectMethodType.Select, false)]
            public List<WaiterOnDuty> ListAllWaiters()
            {
@@ -478,6 +494,101 @@ namespace eRestaurantSystem.BLL
                    return result.ToList();
                }
            }
+
+
+        //seating of walkins
+           /// <summary>
+           /// Seats a customer that is a walk-in
+           /// </summary>
+           /// <param name="when">A mock value of the date/time (Temporary - see remarks)</param>
+           /// <param name="tableNumber">Table number to be seated</param>
+           /// <param name="customerCount">Number of customers being seated</param>
+           /// <param name="waiterId">Id of waiter that is serving</param>
+           public void SeatCustomer(DateTime when, byte tableNumber, int customerCount, int waiterId)
+           {
+               var availableSeats = AvailableSeatingByDateTime(when.Date, when.TimeOfDay);
+               using (var context = new eRestaurantContext())
+               {
+                   List<string> errors = new List<string>();
+                   // Rule checking:
+                   // - Table must be available - typically a direct check on the table, but proxied based on the mocked time here
+                   // - Table must be big enough for the # of customers
+                   if (!availableSeats.Exists(x => x.Table == tableNumber))
+                       errors.Add("Table is currently not available");
+                   else if (!availableSeats.Exists(x => x.Table == tableNumber && x.Seating >= customerCount))
+                       errors.Add("Insufficient seating capacity for number of customers.");
+                   if (errors.Count > 0)
+                       throw new BusinessRuleException("Unable to seat customer", errors);
+                   Bill seatedCustomer = new Bill()
+                   {
+                       BillDate = when,
+                       NumberInParty = customerCount,
+                       WaiterID = waiterId,
+                       TableID = context.Tables.Single(x => x.TableNumber == tableNumber).TableID
+                   };
+                   context.Bills.Add(seatedCustomer);
+                   context.SaveChanges();
+               }
+           }
+
+
+
+
+
+        //seating of reservations
+           public void SeatCustomer(DateTime when, int reservationId, List<byte> tables, int waiterId)
+           {
+               var availableSeats = SeatingByDateTime(when.Date, when.TimeOfDay);
+               using (var context = new eRestaurantContext())
+               {
+                   List<string> errors = new List<string>();
+                   // Rule checking:
+                   // - Reservation must be in Booked status
+                   // - Table must be available - typically a direct check on the table, but proxied based on the mocked time here
+                   // - Table must be big enough for the # of customers
+                   var reservation = context.Reservations.Find(reservationId);
+                   if (reservation == null)
+                       errors.Add("The specified reservation does not exist");
+                   else if (reservation.ReservationStatus != Reservation.Booked)
+                       errors.Add("The reservation's status is not valid for seating. Only booked reservations can be seated.");
+                   //is there sufficient seating available for the reservation
+
+                   var capacity = 0;
+                   foreach (var tableNumber in tables)
+                   {
+                       if (!availableSeats.Exists(x => x.Table == tableNumber))
+                           errors.Add("Table " + tableNumber + " is currently not available");
+                       else
+                           capacity += availableSeats.Single(x => x.Table == tableNumber).Seating;
+                   }
+                   if (capacity < reservation.NumberInParty)
+                       errors.Add("Insufficient seating capacity for number of customers. Alternate tables must be used.");
+                   if (errors.Count > 0)
+                       throw new BusinessRuleException("Unable to seat reservation", errors);
+                   // 1) Create a blank bill with assigned waiter
+                   Bill seatedCustomer = new Bill()
+                   {
+                       BillDate = when,
+                       NumberInParty = reservation.NumberInParty,
+                       WaiterID = waiterId,
+                       ReservationID = reservation.ReservationID
+                   };
+                   context.Bills.Add(seatedCustomer);
+                   // 2) Add the tables for the reservation (ReservationTables) n adds depending on the number of table to assigned.
+                   foreach (var tableNumber in tables)
+                       reservation.Tables.Add(context.Tables.Single(x => x.TableNumber == tableNumber));
+                   //3) Update the reservation status to arrived.
+                   reservation.ReservationStatus = Reservation.Arrived;
+                   var updatable = context.Entry(context.Reservations.Attach(reservation));
+                   updatable.Property(x => x.ReservationStatus).IsModified = true;
+                   //updatable.Reference(x=>x.Tables).
+                   // 4) Save changes
+                   context.SaveChanges();
+               }
+               //string message = String.Format("Not yet implemented. Need to seat reservation {0} for waiter {1} at tables {2}", reservationId, waiterId, string.Join(", ", tables));
+               //throw new NotImplementedException(message);
+           }
         #endregion
+
     }// eof class
 }//eof namespace

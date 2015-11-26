@@ -1,9 +1,12 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Site.master" AutoEventWireup="true" CodeFile="FrontDesk.aspx.cs" Inherits="UXPages_FrontDesk" %>
 
 <%@ Register Src="~/UserControls/DateTimeMocker.ascx" TagPrefix="uc1" TagName="DateTimeMocker" %>
+<%@ Register Src="~/UserControls/MessageUserControl.ascx" TagPrefix="uc1" TagName="MessageUserControl" %>
+
 
 
 <asp:Content ID="Content1" ContentPlaceHolderID="MainContent" Runat="Server">
+    <uc1:MessageUserControl runat="server" ID="MessageUserControl" />
      <br /><br />  <br /><br />  <br /> 
     <uc1:DateTimeMocker runat="server" ID="Mocker" />
     <!-- this is the presentation markup code for the Seating Summary Display-->
@@ -19,7 +22,8 @@
             </style>
             <asp:GridView ID="SeatingGridView" runat="server" AutoGenerateColumns="False"
                     CssClass="table table-hover table-striped table-condensed"
-                    DataSourceID="SeatingObjectDataSource" ItemType="eRestaurantSystem.Entities.POCOs.SeatingSummary">
+                    DataSourceID="SeatingObjectDataSource" ItemType="eRestaurantSystem.Entities.POCOs.SeatingSummary"
+                OnSelectedIndexChanging="SeatingGridView_SelectedIndexChanging">
                 <Columns>
                     <asp:CheckBoxField DataField="Taken" HeaderText="Taken" SortExpression="Taken" ItemStyle-HorizontalAlign="Center"></asp:CheckBoxField>
                     <asp:TemplateField HeaderText="Table" SortExpression="Table" ItemStyle-HorizontalAlign="Center">
@@ -82,7 +86,7 @@
         </SelectParameters>
     </asp:ObjectDataSource>--%>
     <asp:ObjectDataSource runat="server" ID="WaitersDataSource" OldValuesParameterFormatString="original_{0}"
-    SelectMethod="ListWaiters" TypeName="eRestaurantSystem.BLL.AdminController"></asp:ObjectDataSource>
+    SelectMethod="ListAllWaiters" TypeName="eRestaurantSystem.BLL.AdminController"></asp:ObjectDataSource>
 
     <!-- this is the presentation mark up code for the reservation display.
         -->
@@ -94,13 +98,14 @@
             <h4>Today's Reservations</h4>
              <!-- item type parameter must be directed to your current application locations-->
             <asp:Repeater ID="ReservationsRepeater" runat="server"
-                ItemType="eRestaurantSystem.Entities.DTOs.ReservationCollection" DataSourceID="ReservationsDataSource">
+                ItemType="eRestaurantSystem.Entities.DTOs.ReservationCollection" DataSourceID="ReservationsDataSource" >
                 <ItemTemplate>
                     <div>
                         <h4><%# Item.SeatingTime %></h4>
                         <asp:ListView ID="ReservationSummaryListView" runat="server"
-                                ItemType="eRestaurantSystem.Entities.POCOs.ReservationSummary"
-                                DataSource="<%# Item.Reservations %>">
+                                ItemType="eRestaurantSystem.Entities.POCOs.ReservationSummary" OnCommandItem="ReservationSummaryListView_OnItemCommand"
+                                DataSource="<%# Item.Reservations %>"
+                            >
                             <LayoutTemplate>
                                 <div class="seating">
                                     <span runat="server" id="itemPlaceholder" />
@@ -112,13 +117,37 @@
                                     <%# Item.NumberInParty %> —
                                     <%# Item.Status %> —
                                     PH:
-                                    <%# Item.Contact %>
+                                    <%# Item.Contact %>-
+                                    <asp:LinkButton ID="InsertButton" runat="server" 
+                                        CommandName ="Seat" 
+                                        CommandArgument ='<%# Item.ID %>' >
+                                        Reservation Seating
+                                        <span class="glyphicon glyphicon-plus"></span>
+                                    </asp:LinkButton>
                                 </div>
                             </ItemTemplate>
                         </asp:ListView>
                     </div>
                 </ItemTemplate>
             </asp:Repeater>
+            <asp:Panel ID="ReservationSeatingPanel" runat="server" Visible='<%# ShowReservationSeating() %>'>
+                <asp:DropDownList ID="WaiterDropDownList" runat="server" CssClass="seating"
+                    AppendDataBoundItems="true" DataSourceID="WaitersDataSource"
+                    DataTextField="FullName" DataValueField="WaiterId">
+                    <asp:listitem value="0">[select a waiter]</asp:listitem>
+                </asp:DropDownList>
+                <asp:ListBox ID="ReservationTableListBox" runat="server" CssClass="seating"                             
+                    DataSourceID="AvailableSeatingObjectDataSource" SelectionMode="Multiple" Rows="14"
+                    DataTextField="Table" DataValueField="Table">
+                </asp:ListBox>
+            </asp:Panel>
+            <%--For the Available Tables DropDown (seating reservation)--%>
+            <asp:ObjectDataSource runat="server" ID="AvailableSeatingObjectDataSource" OldValuesParameterFormatString="original_{0}" SelectMethod="AvailableSeatingByDateTime" TypeName="eRestaurantSystem.BLL.AdminController">
+            <selectparameters>
+            <asp:controlparameter ControlID="Mocker" PropertyName="MockDate" name="date" type="DateTime"></asp:controlparameter>
+            <asp:controlparameter ControlID="Mocker" PropertyName="MockTime" dbtype="Time" name="time"></asp:controlparameter>
+                    </selectparameters>
+                </asp:ObjectDataSource>
             <asp:ObjectDataSource runat="server" ID="ReservationsDataSource" 
                  OldValuesParameterFormatString="original_{0}" SelectMethod="ReservationsByTime"
                  TypeName="eRestaurantSystem.BLL.AdminController">
